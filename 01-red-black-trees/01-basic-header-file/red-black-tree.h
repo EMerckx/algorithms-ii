@@ -2,8 +2,11 @@
 #define BASIC_HEADER_FILE_RED_BLACK_TREE_H
 
 #include <memory>
+#include <iostream>
 
 using std::unique_ptr;
+using std::ostream;
+using std::endl;
 
 template<class Key, class Data>
 class RedBlackNode;
@@ -25,7 +28,14 @@ public:
         return *this;
     }
 
+    friend ostream &operator<<(ostream &os, const RedBlackTree<Key, Data> &redBlackTree) {
+        redBlackTree.write(os);
+        return os;
+    }
 
+private:
+    // we will write the tree in PREORDER
+    void write(ostream &os) const;
 };
 
 template<class Key, class Data>
@@ -43,5 +53,14 @@ public:
 
     RedBlackNode(const Key key, const Data data, const bool isBlack) : key(key), data(data), isBlack(isBlack) { }
 };
+
+template<class Key, class Data>
+void RedBlackTree<Key, Data>::write(ostream &os) const {
+    if (this.get()) {
+        os << "Key = " << this->get()->key << " | Data = " << this->get()->data << endl;
+        this->get()->left.write(os);
+        this->get()->right.write(os);
+    }
+}
 
 #endif //BASIC_HEADER_FILE_RED_BLACK_TREE_H
