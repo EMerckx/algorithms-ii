@@ -70,18 +70,18 @@ void calculateMatrix(vector<vector<int> > &matrix, const int amountOfEggs, const
 
 void printMatrix(const vector<vector<int> > &matrix) {
     cout << "\t|\t";
-    for (int j = 1; j <= matrix[1].size(); j++) {
+    for (int j = 1; j < matrix[1].size(); j++) {
         cout << j << "\t";
     }
     cout << endl;
-    for (int i = 1; i <= matrix.size(); i++) {
+    for (int i = 1; i < matrix.size(); i++) {
         cout << "-----";
     }
     cout << endl;
 
-    for (int i = 1; i <= matrix.size(); i++) {
+    for (int i = 1; i < matrix.size(); i++) {
         cout << i << "\t|\t";
-        for (int j = 1; j <= matrix[1].size(); j++) {
+        for (int j = 1; j < matrix[1].size(); j++) {
             cout << matrix[i][j] << "\t";
         }
         cout << endl;
