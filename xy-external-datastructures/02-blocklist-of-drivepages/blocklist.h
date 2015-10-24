@@ -23,17 +23,14 @@ private:
     Drive<DrivePage<Key, Data>> *drive;
 };
 
+const int CAPACITY = 4;
+
 template<class Key, class Data>
 class DrivePage : public map<Key, Data> {
 public:
     BlockIndex next_blockIndex;
 
     DrivePage() : next_blockIndex(-1) { }
-
-    DrivePage(BlockIndex next_blockIndex) : next_blockIndex(next_blockIndex) { }
-
-private:
-    const int CAPACITY = 4;
 };
 
 

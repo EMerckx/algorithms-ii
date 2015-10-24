@@ -8,11 +8,8 @@ int main() {
 
     Drive<DrivePage<int, int>> drive;
     DrivePage<int, int> drivePage;
-    //error: use of deleted function 'DrivePage<int, int>& DrivePage<int, int>::operator=(const DrivePage<int, int>&)
-    //when: this->operator[](indexCounter) = b;
-    //need to solve this
-    //BlockIndex blockIndex = drive.write(drivePage);
+    BlockIndex blockIndex = drive.write(drivePage);
 
-    /*BlockList<int, int> blockList(drive, blockIndex);*/
+    BlockList<int, int> blockList(drive, blockIndex);
     return 0;
 }
