@@ -70,5 +70,13 @@ public:
     }
 };
 
+template <class Key, class Data>
+    class SearchTree{
+    public:
+
+protected:
+    BinTree<Key, Data> binTree;
+};
+
 
 #endif //BINARY_SEARCH_TREE_SEARCHTREE_H
