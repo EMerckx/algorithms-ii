@@ -9,7 +9,8 @@ int main() {
 
     PointQuadTree<int, int, char> pointQuadTree;
 
-    pointQuadTree.add(1,1,'a');
+    // still gives errors
+    //pointQuadTree.add(1,1,'a');
 
     return 0;
 }

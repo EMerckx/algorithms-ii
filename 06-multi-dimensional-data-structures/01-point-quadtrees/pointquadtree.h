@@ -22,10 +22,18 @@ public:
     PointQuadTree<X, Y, Data>(PointQuadTree<X, Y, Data> &&pointQuadTree)
             : unique_ptr<PointQuadNode<X, Y, Data> >(move(pointQuadTree)) { }
 
+
     PointQuadTree<X, Y, Data> &operator=(PointQuadTree<X, Y, Data> &&pointQuadTree) {
         unique_ptr<PointQuadNode<X, Y, Data> >::operator=(move(pointQuadTree));
         return *this;
     }
+
+    /*PointQuadTree(X &x, Y &y, Data &data) {
+        PointQuadNode<X, Y, Data> pointQuadNode(x, y, data);
+        unique_ptr<PointQuadNode<X, Y, Data> > uniquePtr(pointQuadNode);
+
+        (*this) = move(uniquePtr);
+    }*/
 
     PointQuadTree<X, Y, Data> *search(X x, Y y);
 
@@ -40,10 +48,10 @@ public:
     Data data;
 
     // [ SW , NW , SE , NE ]
-    PointQuadNode<X, Y, Data> children[4];
+    PointQuadTree<X, Y, Data> children[4];
 
     PointQuadNode() {
-        for(int i=0; i<4; i++){
+        for (int i = 0; i < 4; i++) {
             PointQuadTree<X, Y, Data> pointQuadTree;
             children[i] = move(pointQuadTree);
         }
@@ -54,13 +62,13 @@ public:
         this->y = y;
         this->data = data;
 
-        for(int i=0; i<4; i++){
+        for (int i = 0; i < 4; i++) {
             PointQuadTree<X, Y, Data> pointQuadTree;
             children[i] = move(pointQuadTree);
         }
     }
 
-    void setChild(PointQuadTree<X, Y, Data> &&pointQuadTree);
+    void setChild(PointQuadTree<X, Y, Data> *&pointQuadTree);
 
     PointQuadTree<X, Y, Data> *getChild(X x, Y y);
 
@@ -104,7 +112,7 @@ void PointQuadTree<X, Y, Data>::add(X x, Y y, Data data) {
         pointQuadTree->get()->setChild(pointQuadTree);
     }
     else {
-        PointQuadTree<X, Y, Data> newPointQuadTree(x, y, data);
+        PointQuadTree<X, Y, Data> newPointQuadTree();
         (*pointQuadTree) = move(newPointQuadTree);
     }
 }
@@ -132,7 +140,7 @@ PointQuadTree<X, Y, Data> *PointQuadNode<X, Y, Data>::getChild(X x, Y y) {
 }
 
 template<class X, class Y, class Data>
-void PointQuadNode<X, Y, Data>::setChild(PointQuadTree<X, Y, Data> &&pointQuadTree) {
+void PointQuadNode<X, Y, Data>::setChild(PointQuadTree<X, Y, Data> *&pointQuadTree) {
     if ((*pointQuadTree)->get()->x < this->x) {
         if ((*pointQuadTree)->get()->y < this->y) {
             setSouthWestChild(pointQuadTree);
