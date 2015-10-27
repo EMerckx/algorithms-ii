@@ -51,40 +51,43 @@
 
 using std::map;
 using std::queue;
+using std::vector;
 
-enum RichtType { GERICHT, ONGERICHT }; 
+enum RichtType {
+    GERICHT, ONGERICHT
+};
 
 
 class GraafExceptie : public std::logic_error {
 public:
-    GraafExceptie(const std::string &boodschap_) : std::logic_error(boodschap_) {}
+    GraafExceptie(const std::string &boodschap_) : std::logic_error(boodschap_) { }
 };
 
-std::ostream &operator<<(std::ostream &os, const GraafExceptie& exc){
+std::ostream &operator<<(std::ostream &os, const GraafExceptie &exc) {
     return os << exc.what();
 }
 
 
 template<RichtType RT>
-class Graaf{
+class Graaf {
 public:
-typedef std::map<int, int>  Knoop;      // beeldt knoopnummer (van buur) af op verbindingsnummer
+    typedef std::map<int, int> Knoop;      // beeldt knoopnummer (van buur) af op verbindingsnummer
     // Construeert een graaf met gegeven RichtType en aantal knopen (default 0), zonder verbindingen.
-    Graaf(int n=0);
-    
+    Graaf(int n = 0);
+
     // Geeft true indien het richttype GERICHT is, false indien het ONGERICHT is.
     bool isGericht() const;
 
     // Voegt een nieuwe 'lege' knoop toe, d.w.z. zonder verbindingen.
     // Geeft knoopnummer van toegevoegde knoop terug (begint bij 0).
-    virtual int voegKnoopToe();   
-    
+    virtual int voegKnoopToe();
+
     // Voegt verbinding toe tussen knoopnummers 'van' en 'naar'.
     // Gooit GraafExceptie indien verbinding al bestaat of knoopnummers ongeldig zijn.
     // Geeft verbindingsnummer van toegevoegde verbinding terug (begint bij 0).
     // Bij ongerichte graaf wordt terugverbinding ook toegevoegd (met zelfde verbindingnummer!)
-    virtual int voegVerbindingToe(int van, int naar); 
-        
+    virtual int voegVerbindingToe(int van, int naar);
+
     // Verwijdert de verbinding tussen knoopnummers 'van' en 'naar', incl. de terugverbinding indien ongericht.
     // Gooit GraafExceptie indien knoopnummers ongeldig zijn.
     // Geen exceptie indien de verbinding niet bestond.
@@ -102,120 +105,101 @@ typedef std::map<int, int>  Knoop;      // beeldt knoopnummer (van buur) af op v
     // Geeft -1 indien die verbinding niet bestaat.
     // Gooit een GraafExceptie indien knoopnummers ongeldig zijn.
     // Opgelet: performantie is O(log(v)) waarbij v aantal verbindingen vanuit 'van' is.
-    int verbindingsnummer(int van, int naar) const; 
+    int verbindingsnummer(int van, int naar) const;
 
     // Verwijdert alle knopen en verbindingen en herstart de verbindingsnummer
     virtual void wis();
 
     // Toegang tot de knopen:
     const Knoop &operator[](int i) const { return knopen[i]; }
-          Knoop &operator[](int i)       { return knopen[i]; }  // deze kan als lvalue gebruikt worden
 
-          
+    Knoop &operator[](int i) { return knopen[i]; }  // deze kan als lvalue gebruikt worden
+
+
     // Schrijft de gegevens van de volledige graaf naar outputstream os.
     virtual void schrijf(std::ostream &os) const;
 
     // Schrijft de gegevens van de knoop met knoopnummer k naar outputstream os.
     virtual void schrijfKnoop(std::ostream &os, int k) const;
-    
+
     // Schrijft de gegevens van de verbinding met verbindingsnummer v naar outputstream os.
     virtual void schrijfVerbinding(std::ostream &os, int v) const;
 
     void schrijfEuler(std::ostream &os);
 
-    
+
 protected:
     // hulpfuncties
     void controleerKnoopnummer(int k) const;   // throw indien k ongeldig
-    void voegVerbindingToeInDatastructuur(int van, int naar,int verbindingsnummer);
+    void voegVerbindingToeInDatastructuur(int van, int naar, int verbindingsnummer);
+
     void verwijderVerbindingUitDatastructuur(int van, int naar);
+
 protected:
     //datavelden
-    std::vector<Knoop>  knopen;
-    int                 hoogsteVerbindingsnummer;
-    RichtType           richttype;
-    std::stack<int>     vrijgekomenVerbindingsnummers;
+    std::vector<Knoop> knopen;
+    int hoogsteVerbindingsnummer;
+    RichtType richttype;
+    std::stack<int> vrijgekomenVerbindingsnummers;
 };
 
 template<RichtType RT>
 void Graaf<RT>::schrijfEuler(std::ostream &os) {
-    if(RT == GERICHT){
-        int aantalBezochteVerbindingen = 0;
+    if (RT == GERICHT) {
 
-        map<int, queue<int> > teBezoeken;
+        // een vector met knoop iteratoren om alle verbindingen te bezoeken
+        vector<Knoop::const_iterator> knoopIteratoren(aantalKnopen());
+
+        // voeg iedere knoopiterator toe aan de vector
+        for (int i = 0; i < aantalKnopen(); i++) {
+            knoopIteratoren[i] = knopen[i].begin();
+        }
+
+        // een teller bijhouden zodat we straks het euler pad kunnen verifiëren
+        int aantalBezochteVerbindingen = 0;
+        // we beginnen bij knoop 0
         int huidigeKnoop = 0;
 
-        // steek de huidige knoop met zijn verbindingen in de map
-        if(huidigeKnoop < aantalKnopen()){
-            for (Knoop::const_iterator it=knopen[huidigeKnoop].begin(); it!=knopen[huidigeKnoop].end(); ++it)
-            {
-                teBezoeken[huidigeKnoop].push(it->first);
-            }
-        }
+        while (knoopIteratoren[huidigeKnoop] != knopen[huidigeKnoop].end()) {
+            // schrijf de huidige verbinding uit
+            os << "van knoop: " << huidigeKnoop << " -> naar knoop (first): "
+            << knoopIteratoren[huidigeKnoop]->first << " - verbindingsnummer (second): "
+            << knoopIteratoren[huidigeKnoop]->second << "\n";
 
-        while(huidigeKnoop < aantalKnopen()
-              && teBezoeken.find(huidigeKnoop) != teBezoeken.end()
-              && aantalBezochteVerbindingen < aantalVerbindingen()){
-
-            // haal een verbinding van de queue in de map
-            // behandel ze
-            // voeg volgende knoop en verbindingen toe
-            // indien nog niet in de map
-
-
-
+            // increment het aantal bezochte verbindingen
             aantalBezochteVerbindingen++;
+
+            // ga naar volgende verbinding
+            int volgende_knoop = knoopIteratoren[huidigeKnoop]->first;
+            knoopIteratoren[huidigeKnoop]++;
+            huidigeKnoop = volgende_knoop;
         }
 
-        /*
+        // check of elke verbinding is afgelopen
+        os << "Elke verbinding afgelopen? " << (aantalBezochteVerbindingen == aantalVerbindingen()) << " \n";
 
-        int k = huidigeKnoop;
-        for (Knoop::const_iterator it=knopen[k].begin(); it!=knopen[k].end(); ++it)
-        {
-            os << k << "->" << it->first << " ";
-        }*/
     }
     else {
 
     }
-
-
-    /*
-
-    int huidigeKnoop = 0;
-    while(huidigeKnoop < aantalKnopen()){
-    }*/
-
-    /*for (int k=0; k<aantalKnopen(); k++)
-        schrijfKnoop(os, k);*/
-
-    /*
-     * for (Knoop::const_iterator it=knopen[k].begin(); it!=knopen[k].end(); ++it)
-    {
-        os << "  ->" << it->first;
-        schrijfVerbinding(os, it->second);
-    }
-
-
-     */
 }
 
 
 template<RichtType RT>
-std::ostream &operator<<(std::ostream& os, const Graaf<RT>& g);
+std::ostream &operator<<(std::ostream &os, const Graaf<RT> &g);
 
 
 // --- implementatie ---
 
 
 template<RichtType RT>
-void Graaf<RT>::controleerKnoopnummer(int k) const{
-    if (k<0 || (size_t)k>=knopen.size())
-        throw GraafExceptie("ongeldig knoopnummer");    
+void Graaf<RT>::controleerKnoopnummer(int k) const {
+    if (k < 0 || (size_t) k >= knopen.size())
+        throw GraafExceptie("ongeldig knoopnummer");
 }
 
 template<RichtType RT>
-Graaf<RT>::Graaf(int n) : knopen(n), hoogsteVerbindingsnummer(0){}
+Graaf<RT>::Graaf(int n) : knopen(n), hoogsteVerbindingsnummer(0) { }
 
 template<RichtType RT>
 bool Graaf<RT>::isGericht() const { return true; }//voor gerichte graaf
@@ -225,91 +209,91 @@ bool Graaf<ONGERICHT>::isGericht() const { return false; }//voor ongerichte graa
 
 
 template<RichtType RT>
-int Graaf<RT>::voegKnoopToe(){
+int Graaf<RT>::voegKnoopToe() {
     int n = knopen.size();
-    knopen.resize(n+1); // default constructor voor nieuwe knoop wordt opgeroepen (hier lege map)
+    knopen.resize(n + 1); // default constructor voor nieuwe knoop wordt opgeroepen (hier lege map)
     return n;
 }
 
 
 template<RichtType RT>
-int Graaf<RT>::voegVerbindingToe(int van, int naar){
+int Graaf<RT>::voegVerbindingToe(int van, int naar) {
     controleerKnoopnummer(van);
     controleerKnoopnummer(naar);
 
-    if (knopen[van].count(naar) > 0)   
-    {
+    if (knopen[van].count(naar) > 0) {
         std::ostringstream out;
-        out << "verbinding " << van << "-" << naar << " bestaat al"; 
+        out << "verbinding " << van << "-" << naar << " bestaat al";
         throw GraafExceptie(out.str());
     }
     else {
         int verbindingsnummer;
-        if (!vrijgekomenVerbindingsnummers.empty()){
-            verbindingsnummer=vrijgekomenVerbindingsnummers.top();
+        if (!vrijgekomenVerbindingsnummers.empty()) {
+            verbindingsnummer = vrijgekomenVerbindingsnummers.top();
             vrijgekomenVerbindingsnummers.pop();
-        }else
-            verbindingsnummer=hoogsteVerbindingsnummer++;
-        voegVerbindingToeInDatastructuur(van,naar,verbindingsnummer);
+        } else
+            verbindingsnummer = hoogsteVerbindingsnummer++;
+        voegVerbindingToeInDatastructuur(van, naar, verbindingsnummer);
         return verbindingsnummer;
     }
 }
 
-template<RichtType RT>//voor gerichte graaf
-void Graaf<RT>::voegVerbindingToeInDatastructuur(int van, int naar, int verbindingsnummer){
+template<RichtType RT>
+//voor gerichte graaf
+void Graaf<RT>::voegVerbindingToeInDatastructuur(int van, int naar, int verbindingsnummer) {
     knopen[van][naar] = verbindingsnummer;
 }
 
 template<>
-void Graaf<ONGERICHT>::voegVerbindingToeInDatastructuur(int van, int naar, int verbindingsnummer){
+void Graaf<ONGERICHT>::voegVerbindingToeInDatastructuur(int van, int naar, int verbindingsnummer) {
     knopen[van][naar] = verbindingsnummer;
     knopen[naar][van] = verbindingsnummer;
 }
 
 template<RichtType RT>
-void Graaf<RT>::verwijderVerbinding(int van, int naar){
+void Graaf<RT>::verwijderVerbinding(int van, int naar) {
     controleerKnoopnummer(van);
     controleerKnoopnummer(naar);
-    if (knopen[van].find(naar)!=knopen[van].end()){//verbinding bestaat
+    if (knopen[van].find(naar) != knopen[van].end()) {//verbinding bestaat
         vrijgekomenVerbindingsnummers.push(knopen[van][naar]);
-        verwijderVerbindingUitDatastructuur(van,naar);
+        verwijderVerbindingUitDatastructuur(van, naar);
     }
     // (geen exception indien verbinding niet bestaat)
 }
 
 template<RichtType RT>
-void Graaf<RT>::verwijderVerbindingUitDatastructuur(int van, int naar){
+void Graaf<RT>::verwijderVerbindingUitDatastructuur(int van, int naar) {
     knopen[van].erase(naar);
 }
 
 template<>
-void Graaf<ONGERICHT>::verwijderVerbindingUitDatastructuur(int van, int naar){
+void Graaf<ONGERICHT>::verwijderVerbindingUitDatastructuur(int van, int naar) {
     knopen[van].erase(naar);
     knopen[naar].erase(van);
 }
 
 template<RichtType RT>
-int Graaf<RT>::aantalKnopen() const { return knopen.size(); } 
+int Graaf<RT>::aantalKnopen() const { return knopen.size(); }
 
 template<RichtType RT>
 int Graaf<RT>::aantalVerbindingen() const {
-    return hoogsteVerbindingsnummer-vrijgekomenVerbindingsnummers.size();
+    return hoogsteVerbindingsnummer - vrijgekomenVerbindingsnummers.size();
 }
 
 template<RichtType RT>
-int Graaf<RT>::verbindingsnummer(int van, int naar) const{
+int Graaf<RT>::verbindingsnummer(int van, int naar) const {
     controleerKnoopnummer(van);
     controleerKnoopnummer(naar);
     Knoop::const_iterator verbindingit = knopen[van].find(naar);
-    
-    if (verbindingit == knopen[van].end())   
+
+    if (verbindingit == knopen[van].end())
         return -1;
-    else 
+    else
         return (*verbindingit).second;
 }
 
 template<RichtType RT>
-void Graaf<RT>::wis(){
+void Graaf<RT>::wis() {
     knopen.clear();
     hoogsteVerbindingsnummer = 0;
     while (!vrijgekomenVerbindingsnummers.empty())
@@ -317,54 +301,56 @@ void Graaf<RT>::wis(){
 }
 
 template<RichtType RT>
-void Graaf<RT>::schrijf(std::ostream &os) const{
-    os << "Graaf: " << aantalKnopen() << " knopen en " 
-        << aantalVerbindingen() << " verbindingen:" << std::endl;
-    for (int k=0; k<aantalKnopen(); k++)
+void Graaf<RT>::schrijf(std::ostream &os) const {
+    os << "Graaf: " << aantalKnopen() << " knopen en "
+    << aantalVerbindingen() << " verbindingen:" << std::endl;
+    for (int k = 0; k < aantalKnopen(); k++)
         schrijfKnoop(os, k);
 }
 
 template<RichtType RT>
-void Graaf<RT>::schrijfKnoop(std::ostream &os, int k) const{
+void Graaf<RT>::schrijfKnoop(std::ostream &os, int k) const {
     os << "knoop " << k << ":" << std::endl;
-    for (Knoop::const_iterator it=knopen[k].begin(); it!=knopen[k].end(); ++it)
-    {
+    for (Knoop::const_iterator it = knopen[k].begin(); it != knopen[k].end(); ++it) {
         os << "  ->" << it->first;
         schrijfVerbinding(os, it->second);
     }
 }
-    
+
 template<RichtType RT>
-void Graaf<RT>::schrijfVerbinding(std::ostream &os, int v) const{
+void Graaf<RT>::schrijfVerbinding(std::ostream &os, int v) const {
     os << " via " << v << std::endl;
 }
 
 template<RichtType RT>
-std::ostream &operator<<(std::ostream &os, const Graaf<RT> &g){
+std::ostream &operator<<(std::ostream &os, const Graaf<RT> &g) {
     g.schrijf(os);
     return os;
 }
 
-template<RichtType RT,class Takdata>
-class GraafMetTakdata: public virtual Graaf<RT>{
+template<RichtType RT, class Takdata>
+class GraafMetTakdata : public virtual Graaf<RT> {
 public:
     // Construeert een graaf met gegeven RichtType en aantal knopen (default 0), zonder verbindingen.
-    GraafMetTakdata(int n=0):Graaf<RT>(n){};
+    GraafMetTakdata(int n = 0) : Graaf<RT>(n) { };
+
     //Noot: toevoegfunctie zonder takdata op te geven kan alleen gebruikt als de klasse
     //      Takdata een defaultconstructor heeft.
-    virtual int voegVerbindingToe(int van, int naar); 
-    virtual int voegVerbindingToe(int van, int naar, const Takdata&);
+    virtual int voegVerbindingToe(int van, int naar);
+
+    virtual int voegVerbindingToe(int van, int naar, const Takdata &);
     //Noot: verwijderVerbinding wordt ongewijzigd overgenomen van Graaf!
 
     //TakData vrijgeven (eventueel voor wijziging). Geeft nullpointer als tak niet bestaat
     //Noot: pointers teruggegeven door geefTakdata worden ongeldig
     //door toevoegen van een tak.
-    const Takdata* geefTakdata(int van,int naar) const;
-          Takdata* geefTakdata(int van,int naar)      ;
+    const Takdata *geefTakdata(int van, int naar) const;
+
+    Takdata *geefTakdata(int van, int naar);
 
     virtual void wis();
 
-          
+
     // Schrijft de gegevens van de verbinding met verbindingsnummer v naar outputstream os.
     virtual void schrijfVerbinding(std::ostream &os, int v) const;
 
@@ -372,133 +358,141 @@ protected:
     std::vector<Takdata> takdatavector;
 };
 
-template<RichtType RT,class Takdata>
-int GraafMetTakdata<RT,Takdata>::voegVerbindingToe(int van, int naar){
-    return this->voegVerbindingToe(van,naar,Takdata());
+template<RichtType RT, class Takdata>
+int GraafMetTakdata<RT, Takdata>::voegVerbindingToe(int van, int naar) {
+    return this->voegVerbindingToe(van, naar, Takdata());
 }
 
 
-template<RichtType RT,class Takdata>
-int GraafMetTakdata<RT,Takdata>::voegVerbindingToe(int van, int naar, const Takdata& td){
-    bool isnieuwtaknummer=this->vrijgekomenVerbindingsnummers.empty();
-    int taknummer=Graaf<RT>::voegVerbindingToe(van,naar);
+template<RichtType RT, class Takdata>
+int GraafMetTakdata<RT, Takdata>::voegVerbindingToe(int van, int naar, const Takdata &td) {
+    bool isnieuwtaknummer = this->vrijgekomenVerbindingsnummers.empty();
+    int taknummer = Graaf<RT>::voegVerbindingToe(van, naar);
     if (isnieuwtaknummer)
         takdatavector.push_back(td);
     else
-        takdatavector[taknummer]=td;
+        takdatavector[taknummer] = td;
 }
 
 
-
-template<RichtType RT,class Takdata>
-const Takdata* GraafMetTakdata<RT,Takdata>::geefTakdata(int van,int naar) const{
-    int taknummer=this->verbindingsnummer(van,naar);
-    if (taknummer!=-1)
+template<RichtType RT, class Takdata>
+const Takdata *GraafMetTakdata<RT, Takdata>::geefTakdata(int van, int naar) const {
+    int taknummer = this->verbindingsnummer(van, naar);
+    if (taknummer != -1)
         return &takdatavector[taknummer];
     else
         return 0;
 }
 
-template<RichtType RT,class Takdata>
-Takdata* GraafMetTakdata<RT,Takdata>::geefTakdata(int van,int naar){
-    int taknummer=this->verbindingsnummer(van,naar);
-    if (taknummer!=-1)
+template<RichtType RT, class Takdata>
+Takdata *GraafMetTakdata<RT, Takdata>::geefTakdata(int van, int naar) {
+    int taknummer = this->verbindingsnummer(van, naar);
+    if (taknummer != -1)
         return &takdatavector[taknummer];
     else
         return 0;
 }
 
 
-template<RichtType RT,class Takdata>
-void GraafMetTakdata<RT,Takdata>::wis(){
+template<RichtType RT, class Takdata>
+void GraafMetTakdata<RT, Takdata>::wis() {
     Graaf<RT>::wis();
     takdatavector.clear();
 }
 
-template<RichtType RT,class Takdata>
-void  GraafMetTakdata<RT,Takdata>::schrijfVerbinding(std::ostream &os, int v) const{
-    os << " via " << v <<"(Data: "<<takdatavector[v]<<")"<< std::endl;
+template<RichtType RT, class Takdata>
+void  GraafMetTakdata<RT, Takdata>::schrijfVerbinding(std::ostream &os, int v) const {
+    os << " via " << v << "(Data: " << takdatavector[v] << ")" << std::endl;
 }
 
 template<RichtType RT, class Knoopdata>
-class GraafMetKnoopdata:public virtual Graaf<RT>{
+class GraafMetKnoopdata : public virtual Graaf<RT> {
 public:
     // Construeert een graaf met gegeven RichtType, en lijst van Knoopdata;
     template<class InputIterator>
-    GraafMetKnoopdata(InputIterator start,InputIterator eind);
-    GraafMetKnoopdata():Graaf<RT>(){};
-    
-    virtual int voegKnoopToe();   
-    virtual int voegKnoopToe(const Knoopdata&);
+    GraafMetKnoopdata(InputIterator start, InputIterator eind);
 
-    const Knoopdata* geefKnoopdata(int knoopnr) const;
-          Knoopdata* geefKnoopdata(int knoopnr)      ;
+    GraafMetKnoopdata() : Graaf<RT>() { };
+
+    virtual int voegKnoopToe();
+
+    virtual int voegKnoopToe(const Knoopdata &);
+
+    const Knoopdata *geefKnoopdata(int knoopnr) const;
+
+    Knoopdata *geefKnoopdata(int knoopnr);
+
     virtual void wis();
+
     virtual void schrijfKnoop(std::ostream &os, int k) const;
+
 protected:
     //datavelden
-    std::vector<Knoopdata>  knoopdatavector;
+    std::vector<Knoopdata> knoopdatavector;
 };
+
 template<RichtType RT, class Knoopdata>
 template<class InputIterator>
-GraafMetKnoopdata<RT,Knoopdata>::GraafMetKnoopdata(InputIterator start,InputIterator eind)
-    :Graaf<RT>(0){
-        for(;start!=eind;start++)
-            voegKnoopToe(*start);
+GraafMetKnoopdata<RT, Knoopdata>::GraafMetKnoopdata(InputIterator start, InputIterator eind)
+        : Graaf<RT>(0) {
+    for (; start != eind; start++)
+        voegKnoopToe(*start);
 }
 
 template<RichtType RT, class Knoopdata>
-int GraafMetKnoopdata<RT,Knoopdata>::voegKnoopToe(){
+int GraafMetKnoopdata<RT, Knoopdata>::voegKnoopToe() {
     return this->voegKnoopToe(Knoopdata());
 }
 
 template<RichtType RT, class Knoopdata>
-int GraafMetKnoopdata<RT,Knoopdata>::voegKnoopToe(const Knoopdata& kd){
-    int ret=Graaf<RT>::voegKnoopToe();
+int GraafMetKnoopdata<RT, Knoopdata>::voegKnoopToe(const Knoopdata &kd) {
+    int ret = Graaf<RT>::voegKnoopToe();
     knoopdatavector.push_back(kd);
     return ret;
 }
 
-template<RichtType RT,class Knoopdata>
-const Knoopdata* GraafMetKnoopdata<RT,Knoopdata>::geefKnoopdata(int knoopnummer) const{
+template<RichtType RT, class Knoopdata>
+const Knoopdata *GraafMetKnoopdata<RT, Knoopdata>::geefKnoopdata(int knoopnummer) const {
     this->controleerKnoopnummer(knoopnummer);
     return &knoopdatavector[knoopnummer];
 }
 
-template<RichtType RT,class Knoopdata>
-Knoopdata* GraafMetKnoopdata<RT,Knoopdata>::geefKnoopdata(int knoopnummer){
+template<RichtType RT, class Knoopdata>
+Knoopdata *GraafMetKnoopdata<RT, Knoopdata>::geefKnoopdata(int knoopnummer) {
     this->controleerKnoopnummer(knoopnummer);
     return &knoopdatavector[knoopnummer];
 }
 
 
-template<RichtType RT,class Knoopdata>
-void GraafMetKnoopdata<RT,Knoopdata>::wis(){
+template<RichtType RT, class Knoopdata>
+void GraafMetKnoopdata<RT, Knoopdata>::wis() {
     Graaf<RT>::wis();
     knoopdatavector.clear();
 }
 
 
 template<RichtType RT, class Knoopdata>
-void GraafMetKnoopdata<RT,Knoopdata>::schrijfKnoop(std::ostream &os, int k) const{
-    os << "knoop " << k <<"(Data: "<<knoopdatavector[k]<< "):" << std::endl;
-    for (std::map<int, int>::const_iterator it=this->knopen[k].begin(); it!=this->knopen[k].end(); ++it){
+void GraafMetKnoopdata<RT, Knoopdata>::schrijfKnoop(std::ostream &os, int k) const {
+    os << "knoop " << k << "(Data: " << knoopdatavector[k] << "):" << std::endl;
+    for (std::map<int, int>::const_iterator it = this->knopen[k].begin(); it != this->knopen[k].end(); ++it) {
         os << "  ->" << it->first;
         this->schrijfVerbinding(os, it->second);
     }
 }
 
 template<RichtType RT, class Knoopdata, class Takdata>
-class GraafMetKnoopEnTakdata:public GraafMetKnoopdata<RT,Knoopdata>,
-                             public GraafMetTakdata<RT, Takdata>{
+class GraafMetKnoopEnTakdata : public GraafMetKnoopdata<RT, Knoopdata>,
+                               public GraafMetTakdata<RT, Takdata> {
 public:
     template<class InputIterator>
-    GraafMetKnoopEnTakdata(InputIterator start,InputIterator eind):
-        GraafMetKnoopdata<RT,Knoopdata>(start,eind){};
-    GraafMetKnoopEnTakdata():
-        GraafMetKnoopdata<RT,Knoopdata>(){};
-    virtual void wis(){
-        GraafMetKnoopdata<RT,Knoopdata>::wis();
+    GraafMetKnoopEnTakdata(InputIterator start, InputIterator eind) :
+            GraafMetKnoopdata<RT, Knoopdata>(start, eind) { };
+
+    GraafMetKnoopEnTakdata() :
+            GraafMetKnoopdata<RT, Knoopdata>() { };
+
+    virtual void wis() {
+        GraafMetKnoopdata<RT, Knoopdata>::wis();
         this->takdatavector.clear();
     }
 };
