@@ -1,5 +1,5 @@
-#ifndef SPLAY_TREE_ADD_ZOEKBOOM_H
-#define SPLAY_TREE_ADD_ZOEKBOOM_H
+#ifndef BASIC_SPLAY_TREE_ZOEKBOOM_H
+#define BASIC_SPLAY_TREE_ZOEKBOOM_H
 
 /**********************************************************************
 
@@ -52,11 +52,11 @@ public:
     ~Binboom<Sleutel, Data>() { }
 
     Binboom<Sleutel, Data>(Binboom<Sleutel, Data> &&b) : unique_ptr<Binknoop<Sleutel, Data>>(move(b)) {
-        cout << "\tje maakt gebruik van een move constructor" << endl;
+        //cout << "\tje maakt gebruik van een move constructor" << endl;
     }
 
     Binboom<Sleutel, Data> &operator=(Binboom<Sleutel, Data> &&b) {
-        cout << "\tje maakt gebruik van een move operator" << endl;
+        //cout << "\tje maakt gebruik van een move operator" << endl;
         unique_ptr<Binknoop<Sleutel, Data>>::operator=(move(b));
         return *this;
     }
@@ -345,4 +345,4 @@ void Binboom<Sleutel, Data>::schrijf(ostream &os) const {
     }
 }
 
-#endif //SPLAY_TREE_ADD_ZOEKBOOM_H_H
+#endif //BASIC_SPLAY_TREE_ZOEKBOOM_H
