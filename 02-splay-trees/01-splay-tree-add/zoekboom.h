@@ -145,6 +145,7 @@ void Binboom<Sleutel, Data>::roteer(bool links) {
         if ((*this)->rechts != nullptr)
             (*this)->rechts->ouder = (*this).get();
 
+        op->ouder = (*this)->ouder;
         (*this)->ouder = (*this)->links->ouder;
         //(*this)->links->ouder = (*this).get();
 
@@ -157,14 +158,14 @@ void Binboom<Sleutel, Data>::roteer(bool links) {
         if ((*this)->links != nullptr)
             (*this)->links->ouder = (*this).get();
 
-        (*this)->ouder = (*this)->rechts->ouder;
+        op->ouder = (*this)->ouder;
+        //(*this)->ouder = (*this)->links->ouder;
         //(*this)->links->ouder = (*this).get();
 
         op->rechts = move(*this);
         op->rechts->ouder = op.get();
     }
     *this = move(op);
-    (*this)->ouder = 0;
 }
 
 

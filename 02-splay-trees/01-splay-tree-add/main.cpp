@@ -13,13 +13,13 @@ int main() {
 
     //cout << splayTree;
 
-    splayTree.schrijf2(cout);
+    splayTree.schrijf(cout);
 
-    int tezoeken = 2;
+    int tezoeken = 3;
 
     splayTree.zoek(tezoeken);
 
-    splayTree.schrijf2(cout);
+    splayTree.schrijf(cout);
 
     /*b.verwijder(1);
 
