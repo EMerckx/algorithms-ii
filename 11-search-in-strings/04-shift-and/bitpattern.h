@@ -1,5 +1,5 @@
-#ifndef SHIFT_AND_BitPattern_H
-#define SHIFT_AND_BitPattern_H
+#ifndef SHIFT_AND_BITPATTERN_H
+#define SHIFT_AND_BITPATTERN_H
 
 #include <iostream>
 
@@ -67,4 +67,4 @@ public:
     }
 };
 
-#endif //SHIFT_AND_BitPattern_H
+#endif //SHIFT_AND_BITPATTERN_H

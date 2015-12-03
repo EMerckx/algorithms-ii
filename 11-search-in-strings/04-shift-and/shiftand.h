@@ -1,7 +1,7 @@
 #ifndef SHIFT_AND_SHIFTAND_H
 #define SHIFT_AND_SHIFTAND_H
 
-#include "BitPattern.h"
+#include "bitpattern.h"
 #include <queue>
 
 using std::queue;
