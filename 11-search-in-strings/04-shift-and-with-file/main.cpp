@@ -10,7 +10,7 @@ int main() {
 
     // init the needle and ShiftAnd instance
     uint needleLength = 8;
-    uchar needle[] = {'A','b','d','a','l','l','a','h'};
+    uchar needle[] = {'A', 'b', 'd', 'a', 'l', 'l', 'a', 'h'};
     ShiftAnd shiftAnd(needle, needleLength);
 
     // read from the file
@@ -18,14 +18,14 @@ int main() {
     input.open("res/koran.txt");
     vector<uchar> myvect;
     uchar character = input.get();
-    while(!input.fail()){
+    while (!input.fail()) {
         myvect.push_back(character);
         character = input.get();
     }
 
     // init the haystack
-    uchar* haystack = &myvect[0];
-    int haystackLength  = myvect.size();
+    uchar *haystack = &myvect[0];
+    int haystackLength = myvect.size();
     queue<const uchar *> myq = shiftAnd.search(haystack, haystackLength);
 
     // show the found items
